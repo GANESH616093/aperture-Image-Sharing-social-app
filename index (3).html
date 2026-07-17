@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aperture — a photo-sharing studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14110F;
+    --bg-elev: #1C1815;
+    --bg-elev-2: #221D19;
+    --paper: #F2ECDF;
+    --paper-dim: #E7DFCC;
+    --safelight: #E8432C;
+    --safelight-dim: #B5341F;
+    --amber: #D9A441;
+    --ink: #F2ECDF;
+    --ink-dim: #B9AF9E;
+    --ink-faint: #79705F;
+    --line: rgba(242,236,223,0.12);
+    --line-strong: rgba(242,236,223,0.22);
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--body);
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--safelight); color:var(--paper);}
+
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  
+  .sprockets{
+    display:flex;
+    justify-content:space-between;
+    padding:0 18px;
+    height:14px;
+    align-items:center;
+  }
+  .sprockets span{
+    width:7px;height:7px;border-radius:1px;
+    background:var(--line-strong);
+  }
+  .sprockets.top{border-bottom:1px solid var(--line);}
+  .sprockets.bottom{border-top:1px solid var(--line);}
+
+  
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(20,17,15,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    max-width:1160px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--display); font-weight:700; font-size:20px;
+    letter-spacing:0.02em;
+  }
+  .logo .iris-mark{width:26px;height:26px;}
+  .navlinks{
+    display:flex; gap:28px; align-items:center;
+    font-size:14px; color:var(--ink-dim);
+  }
+  .navlinks a{text-decoration:none; transition:color .2s;}
+  .navlinks a:hover{color:var(--paper);}
+  .nav-cta{
+    display:flex; align-items:center; gap:14px;
+  }
+  .btn{
+    font-family:var(--display); font-weight:600; font-size:14px;
+    padding:10px 18px; border-radius:3px; border:1px solid var(--line-strong);
+    background:transparent; color:var(--ink); cursor:pointer;
+    transition: all .18s ease;
+  }
+  .btn:hover{border-color:var(--paper); background:rgba(242,236,223,0.06);}
+  .btn.primary{
+    background:var(--safelight); border-color:var(--safelight); color:#1a0f0c;
+    display:flex; align-items:center; gap:8px;
+  }
+  .btn.primary:hover{background:#ff5138; border-color:#ff5138;}
+
+  
+  .hero{
+    max-width:1160px; margin:0 auto;
+    padding:64px 28px 40px;
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--amber); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{content:''; width:22px; height:1px; background:var(--amber);}
+  h1.display{
+    font-family:var(--display); font-weight:700;
+    font-size:clamp(38px, 5vw, 60px); line-height:1.03; letter-spacing:-0.01em;
+    margin:0 0 20px;
+  }
+  h1.display em{
+    font-style:normal; color:var(--safelight);
+  }
+  .hero p.lede{
+    font-size:17px; line-height:1.65; color:var(--ink-dim); max-width:46ch; margin:0 0 30px;
+  }
+  .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
+
+  .viewfinder{
+    position:relative; aspect-ratio:4/5; border-radius:4px; overflow:hidden;
+    background:var(--bg-elev); border:1px solid var(--line-strong);
+  }
+  .viewfinder img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(1.05) contrast(1.03);}
+  .corner{
+    position:absolute; width:22px; height:22px; border-color:var(--paper); opacity:.85;
+  }
+  .corner.tl{top:12px; left:12px; border-top:2px solid; border-left:2px solid;}
+  .corner.tr{top:12px; right:12px; border-top:2px solid; border-right:2px solid;}
+  .corner.bl{bottom:12px; left:12px; border-bottom:2px solid; border-left:2px solid;}
+  .corner.br{bottom:12px; right:12px; border-bottom:2px solid; border-right:2px solid;}
+  .exif-strip{
+    position:absolute; left:12px; bottom:12px; right:12px;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    font-family:var(--mono); font-size:11px; color:var(--paper);
+    text-shadow:0 1px 4px rgba(0,0,0,0.6);
+  }
+  .rec-dot{
+    width:7px;height:7px;border-radius:50%;background:var(--safelight);
+    display:inline-block; margin-right:6px; animation:blink 1.6s infinite;
+  }
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+  
+  section{max-width:1160px; margin:0 auto; padding:80px 28px;}
+  .section-head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap:24px; margin-bottom:36px; flex-wrap:wrap;
+    border-bottom:1px solid var(--line); padding-bottom:20px;
+  }
+  .section-head h2{
+    font-family:var(--display); font-size:30px; margin:0; font-weight:600;
+  }
+  .section-head p{color:var(--ink-dim); margin:6px 0 0; max-width:52ch; font-size:14.5px;}
+
+  
+  #feed-section{padding-top:56px;}
+  .feed{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:24px;
+  }
+  .card{
+    background:var(--bg-elev); border:1px solid var(--line);
+    border-radius:5px; overflow:hidden; display:flex; flex-direction:column;
+    transition:border-color .2s;
+  }
+  .card:hover{border-color:var(--line-strong);}
+  .card-photo{position:relative; aspect-ratio:4/3; background:var(--bg-elev-2);}
+  .card-photo img{width:100%; height:100%; object-fit:cover; display:block;}
+  .frame-count{
+    position:absolute; top:10px; left:10px;
+    font-family:var(--mono); font-size:10.5px; color:var(--paper);
+    background:rgba(20,17,15,0.55); padding:3px 7px; border-radius:2px; letter-spacing:.05em;
+  }
+  .tag-pill{
+    position:absolute; top:10px; right:10px;
+    font-family:var(--mono); font-size:10px; color:var(--bg);
+    background:var(--amber); padding:3px 8px; border-radius:20px; letter-spacing:.02em;
+  }
+  .card-body{padding:16px 18px 18px; display:flex; flex-direction:column; gap:10px; flex:1;}
+  .card-cap{font-size:14.5px; line-height:1.5; color:var(--paper);}
+  .card-meta{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:11px; color:var(--ink-faint);
+  }
+  .card-actions{
+    display:flex; align-items:center; gap:16px; padding-top:8px; border-top:1px solid var(--line);
+  }
+  .action{
+    display:flex; align-items:center; gap:6px; background:none; border:none;
+    color:var(--ink-dim); cursor:pointer; font-size:13px; padding:4px 2px;
+    transition:color .15s;
+  }
+  .action:hover{color:var(--paper);}
+  .action svg{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8;}
+  .action.liked{color:var(--safelight);}
+  .action.liked svg{fill:var(--safelight); stroke:var(--safelight);}
+  .heart-pop{animation:pop .32s ease;}
+  @keyframes pop{0%{transform:scale(1);}45%{transform:scale(1.35);}100%{transform:scale(1);}}
+
+  .comments{display:flex; flex-direction:column; gap:8px;}
+  .comment-row{display:flex; gap:8px; font-size:13px; line-height:1.4;}
+  .comment-row b{color:var(--paper); font-weight:600;}
+  .comment-row span{color:var(--ink-dim);}
+  .comment-form{display:flex; gap:8px; margin-top:2px;}
+  .comment-form input{
+    flex:1; background:var(--bg-elev-2); border:1px solid var(--line);
+    color:var(--ink); border-radius:3px; padding:8px 10px; font-size:13px; font-family:var(--body);
+  }
+  .comment-form input:focus{outline:none; border-color:var(--amber);}
+  .comment-form button{
+    background:none; border:1px solid var(--line-strong); color:var(--ink-dim);
+    padding:0 12px; border-radius:3px; cursor:pointer; font-size:13px;
+  }
+  .comment-form button:hover{color:var(--paper); border-color:var(--paper);}
+
+  
+  .upload-tile{
+    border:1px dashed var(--line-strong); border-radius:5px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px; min-height:260px; cursor:pointer; color:var(--ink-dim);
+    background:var(--bg-elev); transition:all .2s;
+  }
+  .upload-tile:hover{border-color:var(--amber); color:var(--paper); background:var(--bg-elev-2);}
+  .upload-tile span.label{font-family:var(--display); font-size:14px; font-weight:600;}
+  .upload-tile span.sub{font-family:var(--mono); font-size:11px; color:var(--ink-faint);}
+
+  
+  .iris-btn{
+    position:relative; width:38px; height:38px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .iris-mark{transition: transform .5s cubic-bezier(.2,.8,.2,1);}
+  .iris-btn:hover .iris-mark{transform:rotate(28deg);}
+  .blade{transform-origin:50% 50%; transition: transform .35s ease;}
+
+ 
+  .pipeline{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:2px;
+    background:var(--line); border:1px solid var(--line); border-radius:6px; overflow:hidden;
+  }
+  .stage{
+    background:var(--bg-elev); padding:26px 22px; min-height:210px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .stage .num{
+    font-family:var(--mono); font-size:11px; color:var(--safelight); letter-spacing:.08em;
+  }
+  .stage h3{
+    font-family:var(--display); font-size:17px; margin:0; font-weight:600; color:var(--paper);
+  }
+  .stage .aws{
+    font-family:var(--mono); font-size:11px; color:var(--amber); letter-spacing:.03em;
+  }
+  .stage p{font-size:13.5px; color:var(--ink-dim); line-height:1.55; margin:0;}
+
+  .flow-note{
+    display:flex; align-items:center; gap:10px; margin-top:22px;
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint); flex-wrap:wrap;
+  }
+  .flow-note .hop{color:var(--ink-dim);}
+  .flow-note .arrow{color:var(--safelight);}
+
+  
+  footer{
+    border-top:1px solid var(--line); padding:36px 28px 60px;
+  }
+  .footer-inner{
+    max-width:1160px; margin:0 auto; display:flex; justify-content:space-between;
+    align-items:center; flex-wrap:wrap; gap:16px;
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
+  }
+
+  
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(10,8,7,0.72); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--bg-elev); border:1px solid var(--line-strong); border-radius:6px;
+    width:100%; max-width:480px; padding:28px; box-shadow:var(--shadow);
+  }
+  .modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .modal-head h3{font-family:var(--display); font-size:19px; margin:0;}
+  .modal-close{background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:20px; line-height:1;}
+  .modal p.hint{color:var(--ink-faint); font-size:13px; margin:0 0 20px;}
+
+  .drop-zone{
+    border:1px dashed var(--line-strong); border-radius:5px; padding:32px 16px;
+    text-align:center; cursor:pointer; transition:all .2s; margin-bottom:18px;
+  }
+  .drop-zone:hover, .drop-zone.drag{border-color:var(--amber); background:rgba(217,164,65,0.06);}
+  .drop-zone .iris-mark{margin:0 auto 12px;}
+  .drop-zone .dz-label{font-family:var(--display); font-size:14px; font-weight:600; color:var(--paper);}
+  .drop-zone .dz-sub{font-family:var(--mono); font-size:11px; color:var(--ink-faint); margin-top:4px;}
+  .preview-wrap{margin-bottom:18px;}
+  .preview-wrap img{width:100%; max-height:220px; object-fit:cover; border-radius:4px; display:block;}
+
+  textarea.cap-input{
+    width:100%; background:var(--bg-elev-2); border:1px solid var(--line); border-radius:4px;
+    color:var(--ink); padding:10px 12px; font-family:var(--body); font-size:13.5px;
+    resize:none; margin-bottom:16px; min-height:56px;
+  }
+  textarea.cap-input:focus{outline:none; border-color:var(--amber);}
+
+  .pipeline-log{
+    display:flex; flex-direction:column; gap:9px; margin:4px 0 18px;
+    font-family:var(--mono); font-size:12px;
+  }
+  .pipe-step{
+    display:flex; align-items:center; gap:10px; color:var(--ink-faint); transition:color .2s;
+  }
+  .pipe-step .dot{
+    width:14px; height:14px; border-radius:50%; border:1.5px solid var(--line-strong);
+    flex:none; display:flex; align-items:center; justify-content:center;
+  }
+  .pipe-step.active{color:var(--paper);}
+  .pipe-step.active .dot{border-color:var(--amber);}
+  .pipe-step.done{color:var(--ink-dim);}
+  .pipe-step.done .dot{border-color:var(--safelight); background:var(--safelight);}
+  .pipe-step.done .dot::after{content:'✓'; color:#1a0f0c; font-size:9px;}
+  .pipe-step .svc{margin-left:auto; color:var(--amber); opacity:.8;}
+
+  .modal-actions{display:flex; gap:10px; justify-content:flex-end;}
+  .hidden-input{display:none;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translate(-50%, 20px);
+    background:var(--paper); color:var(--bg); font-family:var(--display); font-weight:600;
+    font-size:13.5px; padding:12px 20px; border-radius:4px; opacity:0; pointer-events:none;
+    transition:all .3s ease; z-index:200; box-shadow:var(--shadow);
+  }
+  .toast.show{opacity:1; transform:translate(-50%, 0);}
+
+  @media (max-width: 860px){
+    .hero{grid-template-columns:1fr; padding-top:40px;}
+    .feed{grid-template-columns:1fr;}
+    .pipeline{grid-template-columns:1fr;}
+    .navlinks{display:none;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sprockets top">
+  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+</div>
+
+<header class="site">
+  <div class="nav">
+    <div class="logo">
+      <svg class="iris-mark" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="18" stroke="#E8432C" stroke-width="1.4"/>
+        <g>
+          <path d="M20 20 L20 6 L28 9 Z" fill="#D9A441"/>
+          <path d="M20 20 L32 12 L34 20 Z" fill="#D9A441" opacity="0.85"/>
+          <path d="M20 20 L34 20 L30 32 Z" fill="#D9A441" opacity="0.7"/>
+          <path d="M20 20 L30 32 L18 34 Z" fill="#D9A441" opacity="0.55"/>
+          <path d="M20 20 L18 34 L8 28 Z" fill="#D9A441" opacity="0.4"/>
+          <path d="M20 20 L8 28 L6 18 Z" fill="#D9A441" opacity="0.55"/>
+          <path d="M20 20 L6 18 L12 8 Z" fill="#D9A441" opacity="0.7"/>
+          <path d="M20 20 L12 8 L20 6 Z" fill="#D9A441" opacity="0.85"/>
+        </g>
+        <circle cx="20" cy="20" r="4.5" fill="#14110F"/>
+      </svg>
+      APERTURE
+    </div>
+    <nav class="navlinks">
+      <a href="#feed-section">Feed</a>
+      <a href="#architecture">How it works</a>
+      <a href="#about">About</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="btn primary" id="open-upload-nav">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        New photo
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div>
+    <div class="eyebrow">Image sharing, built on managed AWS</div>
+    <h1 class="display">Every photo gets<br>a proper <em>darkroom</em>.</h1>
+    <p class="lede">Upload, tag, and share images with friends. Behind the shutter: Amazon S3 holds the originals, CloudFront delivers them fast worldwide, and Rekognition reads every frame before it hits the feed.</p>
+    <div class="hero-actions">
+      <button class="btn primary" id="open-upload-hero">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Upload a photo
+      </button>
+      <a href="#architecture" class="btn">See the pipeline</a>
+    </div>
+  </div>
+  <div class="viewfinder">
+    <img src="https://picsum.photos/seed/aperture-hero/900/1125" alt="Featured shot from the Aperture feed">
+    <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+    <div class="exif-strip">
+      <span><span class="rec-dot"></span>LIVE ON FEED</span>
+      <span>ISO 200 · f/2.8 · 1/500</span>
+    </div>
+  </div>
+</section>
+
+<section id="feed-section">
+  <div class="section-head">
+    <div>
+      <h2>The feed</h2>
+      <p>Recently developed. Tap the shutter to like, or leave a note under any frame.</p>
+    </div>
+    <span style="font-family:var(--mono); font-size:11px; color:var(--ink-faint);" id="feed-count">6 frames</span>
+  </div>
+  <div class="feed" id="feed"></div>
+</section>
+
+<section id="architecture">
+  <div class="section-head">
+    <div>
+      <h2>How a photo travels</h2>
+      <p>Six managed services, one upload. Nothing here is a guess — it's the same shape a small photo-sharing app would run in production.</p>
+    </div>
+  </div>
+
+  <div class="pipeline">
+    <div class="stage">
+      <span class="num">01 — INTAKE</span>
+      <h3>The front desk</h3>
+      <span class="aws">Amazon API Gateway</span>
+      <p>Every request from the app — upload, like, comment — arrives here first. It checks the request is well-formed and hands it to the right function.</p>
+    </div>
+    <div class="stage">
+      <span class="num">02 — PROCESSING</span>
+      <h3>The darkroom techs</h3>
+      <span class="aws">AWS Lambda</span>
+      <p>Short-lived functions do the actual work: writing the file to storage, kicking off moderation, and updating records — no server sitting idle between uploads.</p>
+    </div>
+    <div class="stage">
+      <span class="num">03 — INSPECTION</span>
+      <h3>The inspector</h3>
+      <span class="aws">Amazon Rekognition</span>
+      <p>Scans each image as it lands: auto-generates tags like "Outdoor" or "Portrait" and flags anything that shouldn't reach the feed.</p>
+    </div>
+    <div class="stage">
+      <span class="num">04 — ARCHIVE</span>
+      <h3>The negatives locker</h3>
+      <span class="aws">Amazon S3</span>
+      <p>The original file lives here, durably, once and only once. Everything else in the system points back to this copy rather than duplicating it.</p>
+    </div>
+    <div class="stage">
+      <span class="num">05 — DELIVERY</span>
+      <h3>The gallery wall</h3>
+      <span class="aws">Amazon CloudFront</span>
+      <p>Caches images at edge locations close to whoever's viewing, so a photo opens just as fast in another city as it does next door.</p>
+    </div>
+    <div class="stage">
+      <span class="num">06 — LEDGER</span>
+      <h3>The guestbook</h3>
+      <span class="aws">Amazon DynamoDB</span>
+      <p>Holds the facts about each photo — captions, tags, like counts, comment threads — and answers feed queries in single-digit milliseconds.</p>
+    </div>
+  </div>
+
+  <div class="flow-note">
+    <span class="hop">Upload tap</span><span class="arrow">→</span>
+    <span class="hop">API Gateway</span><span class="arrow">→</span>
+    <span class="hop">Lambda</span><span class="arrow">→</span>
+    <span class="hop">S3 (store) + Rekognition (scan)</span><span class="arrow">→</span>
+    <span class="hop">DynamoDB (record)</span><span class="arrow">→</span>
+    <span class="hop">CloudFront (serve)</span>
+  </div>
+</section>
+
+<section id="about">
+  <div class="section-head">
+    <div>
+      <h2>About this build</h2>
+      <p>This is a front-end demo of the product experience. Uploads, likes, and comments run entirely in your browser (saved to local storage), and the AWS pipeline above is simulated on upload so you can see the shape of each step.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <span>APERTURE — a photo-sharing demo</span>
+    <span>S3 · CloudFront · API Gateway · Lambda · DynamoDB · Rekognition</span>
+  </div>
+</footer>
+
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>New photo</h3>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+    <p class="hint">Drops go straight through the pipeline on the right — S3, Rekognition, and DynamoDB, in that order.</p>
+
+    <div id="drop-zone" class="drop-zone">
+      <svg class="iris-mark" width="34" height="34" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="18" stroke="#E8432C" stroke-width="1.4"/>
+        <path d="M20 20 L20 6 L28 9 Z" fill="#D9A441"/>
+        <path d="M20 20 L32 12 L34 20 Z" fill="#D9A441" opacity="0.85"/>
+        <path d="M20 20 L34 20 L30 32 Z" fill="#D9A441" opacity="0.7"/>
+        <path d="M20 20 L30 32 L18 34 Z" fill="#D9A441" opacity="0.55"/>
+        <path d="M20 20 L18 34 L8 28 Z" fill="#D9A441" opacity="0.4"/>
+        <path d="M20 20 L8 28 L6 18 Z" fill="#D9A441" opacity="0.55"/>
+        <path d="M20 20 L6 18 L12 8 Z" fill="#D9A441" opacity="0.7"/>
+        <path d="M20 20 L12 8 L20 6 Z" fill="#D9A441" opacity="0.85"/>
+      </svg>
+      <div class="dz-label">Drop an image, or click to browse</div>
+      <div class="dz-sub">JPG, PNG — stays on this device</div>
+    </div>
+    <input type="file" accept="image/*" class="hidden-input" id="file-input">
+
+    <div class="preview-wrap" id="preview-wrap" style="display:none;">
+      <img id="preview-img" alt="Upload preview">
+    </div>
+
+    <textarea class="cap-input" id="cap-input" placeholder="Write a caption…" maxlength="140"></textarea>
+
+    <div class="pipeline-log" id="pipeline-log" style="display:none;">
+      <div class="pipe-step" data-step="0"><span class="dot"></span> Uploading original <span class="svc">S3</span></div>
+      <div class="pipe-step" data-step="1"><span class="dot"></span> Routing through gateway <span class="svc">API GW</span></div>
+      <div class="pipe-step" data-step="2"><span class="dot"></span> Running Lambda handler <span class="svc">Lambda</span></div>
+      <div class="pipe-step" data-step="3"><span class="dot"></span> Scanning content <span class="svc">Rekognition</span></div>
+      <div class="pipe-step" data-step="4"><span class="dot"></span> Writing record <span class="svc">DynamoDB</span></div>
+      <div class="pipe-step" data-step="5"><span class="dot"></span> Publishing to edge <span class="svc">CloudFront</span></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" id="cancel-upload">Cancel</button>
+      <button class="btn primary" id="submit-upload" disabled>Publish photo</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="sprockets bottom">
+  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const REKOG_TAGS = ["Outdoor","Portrait","Nature","Architecture","Street","Food","Golden Hour","Monochrome","Travel","Candid","Landscape","Night"];
+  const AVATARS = ["mara.k","teo.lin","priya.dev","sam.r","noor.a","kenji.p","ivy.oz","dax.m"];
+
+  const STORAGE_KEY = "aperture_feed_v1";
+
+  const seedPhotos = () => ([
+    {
+      id: "p1", src: "https://picsum.photos/seed/aperture-1/700/560",
+      caption: "Fog rolling over the ridgeline just after sunrise.",
+      tag: "Landscape", frame: "001", likes: 128, likedByMe: false,
+      comments: [
+        {user:"mara.k", text:"the light here is unreal"},
+        {user:"teo.lin", text:"where was this shot?"}
+      ]
+    },
+    {
+      id: "p2", src: "https://picsum.photos/seed/aperture-2/700/560",
+      caption: "Corner table, second cup of coffee.",
+      tag: "Food", frame: "002", likes: 76, likedByMe: false,
+      comments: [{user:"priya.dev", text:"need this in my life rn"}]
+    },
+    {
+      id: "p3", src: "https://picsum.photos/seed/aperture-3/700/560",
+      caption: "Stairwell on 4th, found on a walk with no destination.",
+      tag: "Architecture", frame: "003", likes: 214, likedByMe: true,
+      comments: [{user:"sam.r", text:"the symmetry!!"},{user:"noor.a", text:"saving this one"}]
+    },
+    {
+      id: "p4", src: "https://picsum.photos/seed/aperture-4/700/560",
+      caption: "Portrait, shot wide open at f/1.8.",
+      tag: "Portrait", frame: "004", likes: 342, likedByMe: false,
+      comments: []
+    },
+    {
+      id: "p5", src: "https://picsum.photos/seed/aperture-5/700/560",
+      caption: "Market street, blue hour.",
+      tag: "Street", frame: "005", likes: 95, likedByMe: false,
+      comments: [{user:"kenji.p", text:"the reflections in the wet pavement"}]
+    },
+    {
+      id: "p6", src: "https://picsum.photos/seed/aperture-6/700/560",
+      caption: "Last light before the train left the station.",
+      tag: "Golden Hour", frame: "006", likes: 189, likedByMe: false,
+      comments: [{user:"ivy.oz", text:"this belongs on a wall"}]
+    }
+  ]);
+
+  function loadPhotos(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){ return JSON.parse(raw); }
+    }catch(e){}
+    return seedPhotos();
+  }
+  function savePhotos(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(photos)); }catch(e){}
+  }
+
+  let photos = loadPhotos();
+
+  const feedEl = document.getElementById('feed');
+  const feedCountEl = document.getElementById('feed-count');
+  const toastEl = document.getElementById('toast');
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 2200);
+  }
+
+  function timeAgoLabel(){
+    const opts = ["just now","2m ago","14m ago","1h ago","3h ago"];
+    return opts[Math.floor(Math.random()*opts.length)];
+  }
+
+  function heartIcon(filled){
+    return '<svg viewBox="0 0 24 24"><path d="M12 21s-7.2-4.6-9.6-9.1C.8 8.6 2.3 5 6 5c2 0 3.4 1.1 4 2.2C10.6 6.1 12 5 14 5c3.7 0 5.2 3.6 3.6 6.9C19.2 16.4 12 21 12 21z"/></svg>';
+  }
+  function commentIcon(){
+    return '<svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-8.5 8.5c-1.3 0-2.5-.3-3.6-.8L3 21l1.3-5.4A8.5 8.5 0 1 1 21 12z"/></svg>';
+  }
+
+  function renderFeed(){
+    feedEl.innerHTML = "";
+    feedCountEl.textContent = photos.length + (photos.length === 1 ? " frame" : " frames");
+
+    photos.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const commentsHtml = p.comments.map(c =>
+        `<div class="comment-row"><b>${escapeHtml(c.user)}</b><span>${escapeHtml(c.text)}</span></div>`
+      ).join('');
+
+      card.innerHTML = `
+        <div class="card-photo">
+          <img src="${p.src}" alt="${escapeHtml(p.caption)}" loading="lazy">
+          <span class="frame-count">IMG_${p.frame}</span>
+          <span class="tag-pill">${p.tag}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-cap">${escapeHtml(p.caption)}</div>
+          <div class="card-meta"><span>${p.likes} likes</span><span>${p._time || timeAgoLabel()}</span></div>
+          <div class="card-actions">
+            <button class="action like-btn ${p.likedByMe ? 'liked' : ''}" data-id="${p.id}">
+              ${heartIcon()} <span class="like-count">${p.likes}</span>
+            </button>
+            <button class="action comment-toggle" data-id="${p.id}">
+              ${commentIcon()} <span>${p.comments.length}</span>
+            </button>
+          </div>
+          <div class="comments" data-comments-for="${p.id}" style="display:none;">
+            ${commentsHtml}
+            <form class="comment-form" data-id="${p.id}">
+              <input type="text" placeholder="Add a comment…" maxlength="120" required>
+              <button type="submit">Post</button>
+            </form>
+          </div>
+        </div>
+      `;
+      if(!p._time) p._time = card.querySelector('.card-meta span:last-child').textContent;
+      feedEl.appendChild(card);
+    });
+
+    const uploadTile = document.createElement('div');
+    uploadTile.className = 'upload-tile';
+    uploadTile.id = 'upload-tile';
+    uploadTile.innerHTML = `
+      <svg class="iris-mark" width="34" height="34" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="18" stroke="#E8432C" stroke-width="1.4"/>
+        <path d="M20 20 L20 6 L28 9 Z" fill="#D9A441"/>
+        <path d="M20 20 L32 12 L34 20 Z" fill="#D9A441" opacity="0.85"/>
+        <path d="M20 20 L34 20 L30 32 Z" fill="#D9A441" opacity="0.7"/>
+        <path d="M20 20 L30 32 L18 34 Z" fill="#D9A441" opacity="0.55"/>
+        <path d="M20 20 L18 34 L8 28 Z" fill="#D9A441" opacity="0.4"/>
+        <path d="M20 20 L8 28 L6 18 Z" fill="#D9A441" opacity="0.55"/>
+        <path d="M20 20 L6 18 L12 8 Z" fill="#D9A441" opacity="0.7"/>
+        <path d="M20 20 L12 8 L20 6 Z" fill="#D9A441" opacity="0.85"/>
+      </svg>
+      <span class="label">Develop a new frame</span>
+      <span class="sub">S3 · Rekognition · DynamoDB</span>
+    `;
+    feedEl.appendChild(uploadTile);
+    uploadTile.addEventListener('click', openModal);
+
+    bindFeedEvents();
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function bindFeedEvents(){
+    document.querySelectorAll('.like-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.id;
+        const p = photos.find(x=>x.id===id);
+        p.likedByMe = !p.likedByMe;
+        p.likes += p.likedByMe ? 1 : -1;
+        btn.classList.toggle('liked', p.likedByMe);
+        btn.querySelector('.like-count').textContent = p.likes;
+        btn.classList.remove('heart-pop');
+        void btn.offsetWidth;
+        btn.classList.add('heart-pop');
+        savePhotos();
+      });
+    });
+
+    document.querySelectorAll('.comment-toggle').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.id;
+        const panel = document.querySelector(`[data-comments-for="${id}"]`);
+        panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        panel.style.flexDirection = 'column';
+      });
+    });
+
+    document.querySelectorAll('.comment-form').forEach(form=>{
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const id = form.dataset.id;
+        const input = form.querySelector('input');
+        const text = input.value.trim();
+        if(!text) return;
+        const p = photos.find(x=>x.id===id);
+        p.comments.push({user:"you", text});
+        input.value = '';
+        savePhotos();
+        renderFeed();
+        const panel = document.querySelector(`[data-comments-for="${id}"]`);
+        if(panel){ panel.style.display='flex'; panel.style.flexDirection='column'; }
+      });
+    });
+  }
+
+  
+  const overlay = document.getElementById('modal-overlay');
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const previewWrap = document.getElementById('preview-wrap');
+  const previewImg = document.getElementById('preview-img');
+  const capInput = document.getElementById('cap-input');
+  const submitBtn = document.getElementById('submit-upload');
+  const pipelineLog = document.getElementById('pipeline-log');
+
+  let pendingDataUrl = null;
+
+  function openModal(){
+    overlay.classList.add('open');
+  }
+  function closeModal(){
+    overlay.classList.remove('open');
+    resetModal();
+  }
+  function resetModal(){
+    pendingDataUrl = null;
+    previewWrap.style.display = 'none';
+    dropZone.style.display = 'flex';
+    dropZone.style.flexDirection = 'column';
+    dropZone.style.alignItems = 'center';
+    capInput.value = '';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Publish photo';
+    pipelineLog.style.display = 'none';
+    pipelineLog.querySelectorAll('.pipe-step').forEach(s=>{
+      s.classList.remove('active','done');
+    });
+    fileInput.value = '';
+  }
+
+  document.getElementById('open-upload-nav').addEventListener('click', openModal);
+  document.getElementById('open-upload-hero').addEventListener('click', openModal);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('cancel-upload').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
+
+  dropZone.addEventListener('click', ()=> fileInput.click());
+  dropZone.addEventListener('dragover', (e)=>{ e.preventDefault(); dropZone.classList.add('drag'); });
+  dropZone.addEventListener('dragleave', ()=> dropZone.classList.remove('drag'));
+  dropZone.addEventListener('drop', (e)=>{
+    e.preventDefault(); dropZone.classList.remove('drag');
+    if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', ()=>{
+    if(fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  function handleFile(file){
+    if(!file.type.startsWith('image/')){
+      showToast('Please choose an image file');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      pendingDataUrl = e.target.result;
+      previewImg.src = pendingDataUrl;
+      previewWrap.style.display = 'block';
+      dropZone.style.display = 'none';
+      submitBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  submitBtn.addEventListener('click', async ()=>{
+    if(!pendingDataUrl) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Publishing…';
+    pipelineLog.style.display = 'flex';
+    pipelineLog.style.flexDirection = 'column';
+
+    const steps = pipelineLog.querySelectorAll('.pipe-step');
+    for(let i=0;i<steps.length;i++){
+      steps[i].classList.add('active');
+      await sleep(480 + Math.random()*260);
+      steps[i].classList.remove('active');
+      steps[i].classList.add('done');
+    }
+
+    const tag = REKOG_TAGS[Math.floor(Math.random()*REKOG_TAGS.length)];
+    const newPhoto = {
+      id: 'u' + Date.now(),
+      src: pendingDataUrl,
+      caption: capInput.value.trim() || 'Untitled frame.',
+      tag: tag,
+      frame: String(photos.length + 1).padStart(3,'0'),
+      likes: 0,
+      likedByMe: false,
+      comments: [],
+      _time: 'just now'
+    };
+    photos.unshift(newPhoto);
+    savePhotos();
+    renderFeed();
+    closeModal();
+    showToast(`Published — Rekognition tagged it "${tag}"`);
+    document.getElementById('feed-section').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+  renderFeed();
+})();
+</script>
+
+</body>
+</html>
